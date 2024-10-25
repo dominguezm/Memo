@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('CSS'); ?>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row">
+        <div class="col-12">
+          <h2>Ingrese el URL de Google Sheet para estudiar</h2>
+          <p>en caso de no cargar, necesita compartir el libro con el usuario que lo va a abrir</p>
+        </div>
+        <script>
+          var idGLibro = <?= idGLibro ?>;
+        </script>
+        <div class="col-8">
+          <input class="form-control form-control-lg" type="text"placeholder="Url de Google Sheet" id="urlGLibro">
+        </div>
+        <div class="col-4">
+          <button class="btn btn-secondary mb-3"onclick="mostrarListaNombreHojas()">Mostrar hojas</button>
+        </div>
+      </div>
+      <div class="container">
+        <div class="row">
+            <div class="col-6" id="listaVinculoHojas">
+            </div>
+        </div>
+      </div>
+      <hr/><hr/>
+    </div>
+    <div class="container-fluid">
+      <ul class="nav fixed-bottom">
+        <div class="container-fluid">
+        <footer class="bg-dark text-white text-center">
+          <p> 2024. Desarrollado por Miguel Dominguez</p>
+        </footer>
+        </div>
+      </ul>
+    </div>
+    <?!= include('CPV-index_JS'); ?>
+  </body>
+</html>

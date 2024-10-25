@@ -1,0 +1,40 @@
+<script>
+  function mostrarListaNombreHojas()
+  {
+    urlGLibro = document.getElementById('urlGLibro').value;
+    google.script.run.withSuccessHandler(actualizarListaNombreHojas).obtenerListaNombreHojasPorUrl(urlGLibro);
+  }
+  
+  function actualizarListaNombreHojas(listaNombreHojas)
+  {
+    listaVinculoHojas = document.getElementById("listaVinculoHojas");
+    listaVinculoHojas.innerHTML = ""; //dejar vacio
+      
+    listaNombreHojas.forEach(
+      nombreHoja => {
+        filaVinculo = document.createElement('div');
+        filaVinculo.className = "row";
+          
+        vinculo = document.createElement('a');
+        vinculo.className = "btn btn-primary mb-3"
+        vinculo.href=nombreHoja.url;
+        vinculo.text = "Ir a "+nombreHoja.nombre;
+          
+        filaVinculo.appendChild(vinculo);
+        listaVinculoHojas.appendChild(filaVinculo);
+      }
+    )
+      
+  }
+
+  function insertarUrlGLibro(urlGLibro)
+  {
+    console.log(urlGLibro);
+    inputUrlGLibro = document.getElementById('urlGLibro');
+    inputUrlGLibro.value = urlGLibro;
+    mostrarListaNombreHojas();
+  }
+</script>
+<script>
+<?!= include('JS'); ?>
+</script>

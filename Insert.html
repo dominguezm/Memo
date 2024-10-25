@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <?!= include('CSS'); ?>
+  </head>
+  <body>
+    <div id="output">
+      <div class="container">
+        <h2>Ingrese el URL de Google Sheet para estudiar las definiciones</h2><? //modificable segun proyecto ?>
+        <div class="row">
+          <div class="col-8">
+            <input class="form-control form-control-lg" type="text" placeholder="Url de Google Sheet" aria-label=".form-control-lg example" id="urlSheet">
+          </div>
+          <div class="col-4">
+            <a type="submit" class="btn btn-primary mb-3" id="accessButton">Empezar</a>
+          </div>
+          <p>https://script.google.com/macros/s/AKfycbzAdGWBmwWH0kt6E6syAx6C__homVlNXf1lD35VhR0E3Az6t7VEG-0Fv0rDdjySAq1A5A/exec?id=13iKwnjaA8JjL2swaSSCfNg5E60p9PHXNlPfQjh1qAu0&sheet=Definiciones-001</p>
+        </div>
+        
+      </div>
+    </div>
+    <script>
+      document.getElementById('accessButton').addEventListener('click', _ => {
+        var urlGSheet = document.getElementById('urlSheet').value;
+        google.script.run.withSuccessHandler(function(accessButton){
+          document.getElementById("accessButton").href = accessButton;
+        }).getParameterUrl(urlGSheet);
+      });
+    </script>
+    <?!= include('JS'); ?>
+  </body>
+</html>

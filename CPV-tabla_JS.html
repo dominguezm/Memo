@@ -1,0 +1,338 @@
+<script>
+  <?!= include('JS') ?>
+</script>
+<script>
+  var listaDeEstudio = [];
+  var speakColumns = [];  //guarda las posiciones de columna Speak
+  var inmovilizarCol = 0; //guarda hasta que nro columna sera inmovilizado
+  var nsecuencia = 0;     //guarda nro de orden de las tarjetas de aprendizaje
+  var idComprobar = 1;
+  var empezoEvaluar = true;
+  //var idGLibro = <?= idGLibro ?>;            //codigo de id del libro de calculo
+  //var nombreHoja = <?= nombreHoja ?>;     //nombre de la hoja
+  //var _anchoCol = 1;
+</script>
+<script>
+  //FUNCION QUE LLAMA DESDE EL DOGET EN APPSSCRIPT AL INICIAR LA PAGINA
+  function mostrarTablaEstudio(tabla){
+    mostrarEncabezadosTablaEstudio(tabla);
+    mostrarContenidoTabla(tabla);
+  }
+
+  //CREACION DE LOS ENCABEZADOS DE LA TABLA DE ESTUDIO
+  function mostrarEncabezadosTablaEstudio(tabla){
+    var _filaDeEncabezados = document.getElementById("_filaDeEncabezados");
+    var valoresEncabezadoDeCol = tabla[0];
+    var cantCol = valoresEncabezadoDeCol.length;
+    
+
+    for(var x=0; x< cantCol; x++){
+      var valorencabezado = valoresEncabezadoDeCol[x];
+      if(valorencabezado.endsWith("*")){
+        inmovilizarCol = x;
+      }
+      if(valorencabezado.includes("Speak")){
+        speakColumns.push(x);
+      }
+      else{
+        _encabezadoDeCol = document.createElement('th');
+        _encabezadoDeCol.scope = "col col-sm";
+        _encabezadoDeCol.id = "encabezadoCol";
+
+        _celda = document.createElement('div');
+        _celda.className = "h-100 p-3 fs-4 border bg-dark text-white";
+        _celda.innerHTML = valorencabezado;
+
+        _encabezadoDeCol.appendChild(_celda);
+        _filaDeEncabezados.appendChild(_encabezadoDeCol);
+      }
+    }
+  }
+
+
+
+  //CREACION DE CONTENIDO DE  LA TABLA DE ESTUDIO
+  function mostrarContenidoTabla(tabla) {
+    var _contenidoTabla = document.getElementById("_contenidoTabla");//obten el elemento div para el contenido
+    crearFilas(tabla, 1, 0, _contenidoTabla); 
+  }
+  // CREACION DE LAS FILAS DE LA TABLA
+  function crearFilas(tabla, y, x, _contenidoTabla){
+
+    var cantFil = tabla.length; //obten la cantidad de filas de la tabla
+    var cantCol = tabla[0].length; // obten la cantidad de columnas de la tabla
+
+    var _filaContenido = document.createElement('tr'); // crear el div para crear la fila
+    //_filaContenido.scope = "row g-2";
+    //_filaContenido.id = y;
+
+    _contenidoTabla.append(_filaContenido); //coloca la filacontenido dentro de contenidoTabla 
+    
+    crearColumnas(tabla, y, 0, _filaContenido);
+
+    if(y < cantFil-1) // si y el numero de fila es menor a la cantidad de filas entonces
+      crearFilas(tabla,y+1, x, _contenidoTabla); //crear la sigueinte fila
+
+  }
+
+  //RETORNA LA CANTIDAD DE FILAS DE UN ENCABEZADO, SI NO ES ENCABEZADO DEVUELVE EL MISMO NUMERO
+  function obtenerLimitFilaEncabezado(tabla, y, x, cantFil){
+    if(y == cantFil)// si es la ultima fila del conteo entonces
+      return y-1; // retorna la ultima fila
+    if(tabla[y][x] == "") // si la celda inferior es celda vacia entonces
+      return obtenerLimitFilaEncabezado(tabla,y+1,x, cantFil); //avanza a la siguite celda inferior
+    return y-1; // retorna la posicion superior si la celda tiene valor
+  }
+  // CREACION DE LAS COLUMNAS DE LA TABLA
+  function crearColumnas(tabla, y, x, _filaContenido)
+  {
+    var cantFil = tabla.length;
+    var cantCol = tabla[y].length;
+
+    if(tabla[y][x]=="" && y > 1)
+    {
+      crearColumnas(tabla, y, x+1, _filaContenido);
+      return;
+    }
+    if(speakColumns.includes(x)) //si el nro de columna es columna speak entonces
+    {
+      crearColumnas(tabla, y, x+1, _filaContenido); // ir a la funcion avanzando a la siguiente valor de la lista de la fila
+      return;
+    }
+    var limitFilaEncabezado=obtenerLimitFilaEncabezado(tabla, y+1, x, cantFil); // obten la cantidad de filas que ocupa si es encabezado, si no lo es tendra el mismo valor de y
+    var cantFilaEncabezado = limitFilaEncabezado-y+1;
+    var _colCelda = crearColumna(tabla[y][x], x, cantFilaEncabezado);
+    _filaContenido.append(_colCelda);
+
+    if(x < cantCol-1)
+      crearColumnas(tabla, y, x+1, _filaContenido)
+  }
+
+  // CREACION DE LA COLUMNA DEL VALOR DE LA CELDA
+  function crearColumna(valor, x, cantFilas) {
+    var _colContenido = document.createElement('td');
+    if(cantFilas > 1)
+      _colContenido.rowSpan  = ""+cantFilas;
+    var _celda = document.createElement('div');
+    _celda.className = "full-height p-4 fs-4 border";
+    if(x > inmovilizarCol) // si el numero de columna es mayor a las columnas a inmovilizar entonces
+    {
+      nsecuencia++;           //incrementa en 1 el numero de secuencia
+      _celda.id = "cell-"+nsecuencia; //poner id
+      listaDeEstudio.push(valor);
+      
+    }
+    _celda.innerHTML = valor;
+
+    _colContenido.append(_celda);
+    return _colContenido;
+  }
+  
+
+
+  function ocultarTarjeta(){
+    document.getElementById("mostrarBoton").disabled = false;
+    document.getElementById("cancelarBoton").disabled = false;
+    document.getElementById("evaluarBoton").disabled = true;
+    reproducirFondo();
+    for(var i=1; i<=nsecuencia; i++){
+      _celda = document.getElementById("cell-"+i);
+      _celda.className = "full-height p-4 fs-4 border";
+      _celda.innerHTML = "";     
+    }
+    idComprobar = 1;
+  }
+
+  function mostrarTarjeta(){
+
+    if(idComprobar > 1){
+      _celdaAnterior = document.getElementById("cell-"+(idComprobar-1));
+      _celdaAnterior.className = _celdaAnterior.className+" bg-success text-dark bg-opacity-25";
+    }
+
+    if(idComprobar>nsecuencia)
+      return;
+
+    _celda = document.getElementById("cell-"+idComprobar);
+    _celda.className = "full-height p-4 fs-4 border";
+    _celda.innerHTML = listaDeEstudio[idComprobar-1];
+    idComprobar++;
+  }
+  
+
+  function cancelarTarjeta(){
+    document.getElementById("ocultarBoton").disabled = false;
+    document.getElementById("mostrarBoton").disabled = true;
+    document.getElementById("cancelarBoton").disabled = true;
+    document.getElementById("evaluarBoton").disabled = false;
+    for(var i=1; i<=nsecuencia; i++){
+      _celda = document.getElementById("cell-"+i);
+      _celda.className = "full-height p-4 fs-4 border";
+      _celda.innerHTML = listaDeEstudio[i-1];
+    }
+    idComprobar = 1;
+    empezoEvaluar = true;
+    
+  }
+
+  function evaluarTarjeta(){
+    document.getElementById("ocultarBoton").disabled = true;
+    document.getElementById("mostrarBoton").disabled = true;
+    
+    if(empezoEvaluar){
+      ocultarTarjeta();
+      crearTextAreaPorId(idComprobar);
+      document.getElementById("evaluarBoton").disabled = false;
+      empezoEvaluar = false;
+      return;
+    }
+    _textAreaLleno = document.getElementById("text-"+idComprobar);
+    _texto = simplificText(_textAreaLleno.value);
+    _respuesta = simplificText(listaDeEstudio[idComprobar-1]);
+    if(_texto==_respuesta){
+      var _celdaAnterior = document.getElementById("cell-"+idComprobar);
+      _celdaAnterior.className = _celdaAnterior.className+" bg-success text-dark bg-opacity-25";
+      _celdaAnterior.innerHTML = listaDeEstudio[idComprobar-1];
+      reproducirRCorrecta();
+      if(idComprobar==nsecuencia){
+        mostrarMensajecompletado();
+        google.script.run.generarTareasRepasoEspaciado(idGLibro, nombreHoja);
+        return;
+      }
+      idComprobar++;
+      crearTextAreaPorId(idComprobar);
+    }
+    else{
+      reproducirREquivocada();
+    }
+
+  }
+
+  function crearTextAreaPorId(idComprobar){
+    _celdaid = document.getElementById("cell-"+idComprobar);
+    _textArea = document.createElement("textarea");
+    _textArea.className = "form-control fs-4";
+    _textArea.id = "text-"+idComprobar;
+    _celdaid.append(_textArea);
+    _textArea.focus();
+  }
+
+  function simplificText(propTexto){
+    propTexto = formatSinMayus(propTexto);
+    propTexto = formatSinAcentos(propTexto);
+    propTexto =formatSinSymbols(propTexto);
+    return propTexto;
+  }
+  function formatSinMayus(propTexto)
+  {
+    function upperToHyphenLower(match)
+    {
+      return match.toLowerCase();
+    }
+    return propTexto.replace(/[A-Z]/g, upperToHyphenLower);
+  }
+  function formatSinAcentos(propTexto){
+    return propTexto.normalize("NFD").replace(/\p{Diacritic}/gu, "");
+  }
+  function formatSinSymbols(propTexto){
+    return propTexto.replace(/([.,*+?^=!:${}()|\[\]\/\\])/g, "");
+  }
+
+  function mostrarMensajecompletado(){
+    var alertaMensaje = document.getElementById('alertaMensaje');
+    var mensaje = "Felicitaciones completaste todo el ejercicio, continua asi para otras tareas";
+    var tipo = "success";
+    var alerta = document.createElement('div');
+    alerta.innerHTML = '<div class="alert alert-' + tipo + ' alert-dismissible" role="alert">' + mensaje + '<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button></div>';
+    alertaMensaje.append(alerta);
+  }
+
+
+/*function mostrarContenidoTabla(tabla){
+    var _contenidoTabla = document.getElementById("_contenidoTabla");
+    var nsecuencia = 0;
+    var cantFil = tabla.length;
+    var cantCol = tabla[0].length;
+
+    for(var y=1; y< cantFil; y++){
+      var _filaContenido = document.createElement('div');
+      _filaContenido.className = "row g-2";
+      var _filaContenidoN2 = null;
+      var _colContenidoN2 = null;
+      var esSubnivel = false;
+
+      for(var x=0; x< cantCol; x++){
+        var _colContenido = document.createElement('div');
+        _colContenido.className = "col";
+
+        if(tabla[y+1] && tabla[x-1] && tabla[y+1][x-1]==""){
+          _filaContenidoN2 = document.createElement('div');
+          _filaContenidoN2.className = "row g-2";
+          _colContenidoN2 = document.createElement('div');
+          _colContenidoN2.className = "col";
+          esSubnivel=true;
+        }
+        
+        var _celda = document.createElement('div');
+        _celda.className = "shadow p-4 fs-4 text-break border border-2 rounded-1 bg-light well";
+        _celda.innerHTML = tabla[y][x];
+
+        console.log(tabla[y][x]);
+
+        //_colContenido.appendChild(_celda);
+
+        if(_filaContenidoN2){
+          _colContenidoN2.appendChild(_celda);
+          _filaContenidoN2.appendChild(_colContenidoN2);
+          _colContenido.appendChild(_filaContenidoN2);
+          
+        }
+        else{
+          _colContenido.appendChild(_celda);
+          
+        }
+        if(esSubnivel){
+          _filaContenidoN2.appendChild(_colContenido);
+        }
+        else{
+          _filaContenido.appendChild(_colContenido);
+        }
+        
+        
+      }
+      _contenidoTabla.appendChild(_filaContenido);   
+
+      
+    }
+    
+  }*/
+  function reproducirFondo(){
+    var _audio = document.getElementById("audioFondo");
+    _audio.volume = 0.5;
+    _audio.play();
+  }
+
+  function reproducirRCorrecta(){
+    var _audio = document.getElementById("audioRCorrecta");
+    _audio.play();
+  }
+  function reproducirREquivocada(){
+    var _audio = document.getElementById("audioREquivocada");
+    _audio.play();
+  }
+
+  function irPaginaInicio(){
+    google.script.run.withSuccessHandler(irPaginaInicioUrl).obtenerUrlInicio();
+  }
+  function irPaginaInicioUrl(url){
+    window.open(url);
+  }
+
+  function irPaginaInicioId(){
+    google.script.run.withSuccessHandler(irPaginaInicioIdUrl).obtenerUrlInicio();
+  }
+  function irPaginaInicioIdUrl(url){
+    window.open(url+"?id="+idGLibro);
+  }
+
+</script>
