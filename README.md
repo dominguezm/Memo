@@ -1,2 +1,2 @@
 # Memo
-aplicación hecha con Appscript para memorización de tablas de aprendizaje en Google Sheet
+Web application made with AppScript for memorization of learning tables from Google Sheet
